@@ -5,6 +5,7 @@
 #include "connection/connectionmanager.h"
 #include "connection/connectionparameters.h"
 
+#include "registers/registersdialog.h"
 #include "registers/registersmanager.h"
 
 using namespace Registers;
@@ -17,6 +18,9 @@ MainWindow::MainWindow(QWidget *parent)
     , m_connectionParameters(new ConnectionParameters(this))
     , m_connectionDialog(new ConnectionDialog(m_connectionParameters, this))
     , m_connectionManager(new ConnectionManager(m_connectionParameters, this))
+    , m_registersDialog(new Registers::RegistersDialog(this))
+    , m_dataModel(new QMap<RegisterType, RegistersDataModel>())
+    , m_changeModel(new QMap<RegisterType, RegistersChangeModel>())
 {
     m_ui->setupUi(this);
 
@@ -30,6 +34,10 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_ui->actionSettings, &QAction::triggered, [this] {
         m_connectionDialog->show();
     });
+
+//    connect(m_ui->actionPco, &QAction::triggered, [] {
+
+//    });
 }
 
 MainWindow::~MainWindow()

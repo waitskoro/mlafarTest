@@ -7,6 +7,12 @@
 
 namespace Registers {
 
+enum RegisterType {
+    Pco,
+    Dos,
+    Common
+};
+
 class Register {
 
 public:
@@ -49,7 +55,6 @@ public:
     QString access;
     QString address;
     QString description;
-
 };
 
 }

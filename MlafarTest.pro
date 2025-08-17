@@ -15,7 +15,10 @@ SOURCES += \
     connection/modbusclient.cpp \
     main.cpp \
     mainwindow.cpp \
+    registers/registerschangemodel.cpp \
+    registers/registersdatamodel.cpp \
     registers/registersdataparser.cpp \
+    registers/registersdialog.cpp \
     registers/registersmanager.cpp
 
 HEADERS += \
@@ -25,12 +28,16 @@ HEADERS += \
     connection/modbusclient.h \
     mainwindow.h \
     registers/iregistersparameters.h \
+    registers/registerschangemodel.h \
+    registers/registersdatamodel.h \
     registers/registersdataparser.h \
+    registers/registersdialog.h \
     registers/registersmanager.h
 
 FORMS += \
     connection/connectiondialog.ui \
-    mainwindow.ui
+    mainwindow.ui \
+    registers/registersdialog.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

@@ -6,12 +6,6 @@
 
 namespace Registers {
 
-enum RegisterType {
-    Pco,
-    Dos,
-    Common
-};
-
 class RegistersDataParser : public QObject
 {
     Q_OBJECT
