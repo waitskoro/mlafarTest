@@ -6,6 +6,10 @@ namespace Ui {
 class MainWindow;
 }
 
+namespace Registers {
+class RegistersManager;
+}
+
 namespace Connection {
 class ConnectionDialog;
 class ConnectionManager;
@@ -21,10 +25,13 @@ public:
     ~MainWindow();
 
 private:
+    void initRegisters();
     void initConnection();
 
     Ui::MainWindow *m_ui;
+    Registers::RegistersManager *m_registersManager;
+
+    Connection::ConnectionParameters *m_connectionParameters;
     Connection::ConnectionDialog *m_connectionDialog;
     Connection::ConnectionManager *m_connectionManager;
-    Connection::ConnectionParameters *m_connectionParameters;
 };

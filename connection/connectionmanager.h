@@ -4,17 +4,18 @@
 
 namespace Connection {
 
+class ModBusClient;
 class ConnectionParameters;
 
 class ConnectionManager : public QObject
 {
     Q_OBJECT
 public:
-    explicit ConnectionManager(ConnectionParameters *parameters, QObject *parent = nullptr);
-
-signals:
+    explicit ConnectionManager(ConnectionParameters *parameters,
+                               QObject *parent = nullptr);
 
 private:
+    ModBusClient *m_client;
     ConnectionParameters *m_parameters;
 
     void onParametersChanged();

@@ -1,4 +1,4 @@
-QT       += core gui
+QT       += core gui widgets serialbus serialport network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -12,14 +12,21 @@ SOURCES += \
     connection/connectiondialog.cpp \
     connection/connectionmanager.cpp \
     connection/connectionparameters.cpp \
+    connection/modbusclient.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    registers/registersdataparser.cpp \
+    registers/registersmanager.cpp
 
 HEADERS += \
     connection/connectiondialog.h \
     connection/connectionmanager.h \
     connection/connectionparameters.h \
-    mainwindow.h
+    connection/modbusclient.h \
+    mainwindow.h \
+    registers/iregistersparameters.h \
+    registers/registersdataparser.h \
+    registers/registersmanager.h
 
 FORMS += \
     connection/connectiondialog.ui \
