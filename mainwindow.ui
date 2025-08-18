@@ -205,7 +205,7 @@
     <property name="title">
      <string>Регистры</string>
     </property>
-    <addaction name="action"/>
+    <addaction name="actionRegisters"/>
    </widget>
    <addaction name="menu"/>
    <addaction name="menu_2"/>
@@ -227,7 +227,7 @@
     <string>Подключиться</string>
    </property>
   </action>
-  <action name="action">
+  <action name="actionRegisters">
    <property name="text">
     <string>Просмотреть</string>
    </property>

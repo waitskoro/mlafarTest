@@ -12,7 +12,8 @@ class RegistersDataParser : public QObject
 public:
     explicit RegistersDataParser(QObject *parent = nullptr);
 
-    const QVector<Register> *registers(RegisterType);
+    QVector<Register> *registers(RegisterType);
+    void saveRegisters(RegisterType, QVector<Register> &);
 
 private:
     void createFile();
@@ -20,8 +21,13 @@ private:
     void readFromJson();
 
     QJsonObject fileObj();
+    QString registerTypeToString(RegisterType type);
 
     QMap<RegisterType, QVector<Register>> *m_registers;
+
+    void saveAllRegistersToFile();
+    bool writeJsonToFile(const QJsonObject &json);
+    RegisterType stringToRegisterType(const QString &str);
 };
 
 }

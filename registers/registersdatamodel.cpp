@@ -2,8 +2,7 @@
 
 using namespace Registers;
 
-RegistersDataModel::RegistersDataModel(QObject *parent)
-    : QObject(parent)
+RegistersDataModel::RegistersDataModel(QObject *parent) : QObject(parent)
 {
 
 }

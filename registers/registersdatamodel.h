@@ -10,6 +10,9 @@ class RegistersDataModel : public QObject
 public:
     explicit RegistersDataModel(QObject *parent = nullptr);
 
+signals:
+
 };
 
 }
+

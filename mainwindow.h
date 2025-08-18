@@ -2,7 +2,7 @@
 
 #include <QMainWindow>
 
-#include "registers/registersdatamodel.h"
+#include "registers/registerschangemodel.h"
 #include "registers/registerschangemodel.h"
 #include "registers/iregistersparameters.h"
 
@@ -42,6 +42,6 @@ private:
 
     Registers::RegistersDialog *m_registersDialog;
 
-    QMap<Registers::RegisterType, Registers::RegistersDataModel> *m_dataModel;
+    QMap<Registers::RegisterType, Registers::RegistersChangeModel> *m_dataModel;
     QMap<Registers::RegisterType, Registers::RegistersChangeModel> *m_changeModel;
 };
