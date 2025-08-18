@@ -62,6 +62,8 @@ RegisterType RegistersDialog::currentTabType()
     if      (tabIndex == 0) return Common;
     else if (tabIndex == 1) return Dos;
     else if (tabIndex == 2) return Pco;
+
+    return {};
 }
 
 QVector<Register> &RegistersDialog::currentVectorByTab(RegisterType)

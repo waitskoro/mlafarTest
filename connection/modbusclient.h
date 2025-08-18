@@ -20,14 +20,15 @@ public:
     ~ModBusClient();
 
     void connectToServer();
+    void disconnectFromDevice();
 
 signals:
-    void connectionState(bool connection);
+    void stateChanged(bool connection);
     void message(const QString &text, int timeout = 0);
 
 private:
     QModbusReply *m_lastRequest;
-    QModbusClient *m_modbusDevice;
+    QModbusClient *m_client;
     ConnectionParameters *m_parameters;
 
     void onStateChanged(QModbusDevice::State state);

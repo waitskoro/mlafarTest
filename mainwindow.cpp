@@ -66,7 +66,21 @@ void MainWindow::initRegisters()
 
 void MainWindow::initConnection()
 {
-    connect(m_ui->actionSettings, &QAction::triggered, [this] {
+    connect(m_ui->actionSettings, &QAction::triggered, [this]() {
         m_connectionDialog->show();
+    });
+
+    connect(m_ui->actionConnection, &QAction::triggered, [this](){
+        if (m_ui->actionConnection->text() == "Подключиться")
+            m_connectionManager->connectToServer();
+        else if (m_ui->actionConnection->text() == "Отключиться")
+            m_connectionManager->disconnectFromDevice();
+    });
+
+    connect(m_connectionManager,
+            &ConnectionManager::stateChanged,
+            [this](bool state){
+                state ? m_ui->actionConnection->setText("Отключиться")
+                      : m_ui->actionConnection->setText("Подключиться");
     });
 }

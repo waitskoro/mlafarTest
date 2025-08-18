@@ -38,7 +38,6 @@ private:
     RegistersChangeModel *m_dosModel;
     RegistersChangeModel *m_pcoModel;
     RegistersChangeModel *m_commonModel;
-
 };
 
 }

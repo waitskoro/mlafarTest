@@ -34,6 +34,16 @@ int RegistersChangeModel::rowCount(const QModelIndex &parent) const
     return m_registers.count();
 }
 
+bool RegistersChangeModel::insertRows(int row, int count, const QModelIndex& parent)
+{
+    beginInsertRows (parent, row, row+count);
+
+//    m_registers.append()
+
+    endInsertRows ();
+    return true;
+}
+
 int RegistersChangeModel::columnCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent)

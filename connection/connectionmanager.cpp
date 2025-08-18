@@ -15,6 +15,21 @@ ConnectionManager::ConnectionManager(ConnectionParameters *parameters,
             &ConnectionParameters::parametersChanged,
             this,
             &ConnectionManager::onParametersChanged);
+
+    connect(m_client,
+            &ModBusClient::stateChanged,
+            this,
+            &ConnectionManager::stateChanged);
+}
+
+void ConnectionManager::connectToServer()
+{
+    m_client->connectToServer();
+}
+
+void ConnectionManager::disconnectFromDevice()
+{
+    m_client->disconnectFromDevice();
 }
 
 void ConnectionManager::onParametersChanged()
