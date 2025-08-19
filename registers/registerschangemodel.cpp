@@ -15,6 +15,9 @@ QVector<Register> &RegistersChangeModel::registers()
 
 void RegistersChangeModel::setRegisters(QVector<Register> &registers)
 {
+    if (registers.isEmpty())
+        return;
+
     beginResetModel();
     m_registers = registers;
     endResetModel();

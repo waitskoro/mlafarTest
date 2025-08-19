@@ -2,8 +2,6 @@
 
 #include <QMainWindow>
 
-#include "registers/registerschangemodel.h"
-#include "registers/registerschangemodel.h"
 #include "registers/iregistersparameters.h"
 
 namespace Ui {
@@ -32,16 +30,14 @@ public:
 private:
     void initRegisters();
     void initConnection();
+    void updateAllRegisters();
 
     Ui::MainWindow *m_ui;
-    Registers::RegistersManager *m_registersManager;
 
     Connection::ConnectionParameters *m_connectionParameters;
     Connection::ConnectionDialog *m_connectionDialog;
     Connection::ConnectionManager *m_connectionManager;
 
     Registers::RegistersDialog *m_registersDialog;
-
-    QMap<Registers::RegisterType, Registers::RegistersChangeModel> *m_dataModel;
-    QMap<Registers::RegisterType, Registers::RegistersChangeModel> *m_changeModel;
+    Registers::RegistersManager *m_registersManager;
 };

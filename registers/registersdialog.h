@@ -26,18 +26,14 @@ public:
 
 signals:
     void neededAllRegisters();
+    void saveRegisters(RegisterType);
     void neededRegisters(RegisterType);
-    void saveRegisters(RegisterType, QVector<Register> &);
 
 private:
     RegisterType currentTabType();
-    QVector<Register> &currentVectorByTab(RegisterType);
 
     Ui::RegistersDialog *m_ui;
-
-    RegistersChangeModel *m_dosModel;
-    RegistersChangeModel *m_pcoModel;
-    RegistersChangeModel *m_commonModel;
+    QMap<RegisterType, RegistersChangeModel*> m_models;
 };
 
 }

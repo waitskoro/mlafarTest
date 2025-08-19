@@ -13,6 +13,8 @@ enum RegisterType {
     Common
 };
 
+const std::array<RegisterType, 3> types = {Pco, Dos, Common};
+
 class Register {
 
 public:
@@ -55,6 +57,7 @@ public:
     QString access;
     QString address;
     QString description;
+    int value;
 };
 
 }

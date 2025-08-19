@@ -8,15 +8,17 @@ using namespace Registers;
 RegistersDialog::RegistersDialog(QWidget *parent)
     : QDialog(parent)
     , m_ui(new Ui::RegistersDialog)
-    , m_dosModel(new RegistersChangeModel(this))
-    , m_pcoModel(new RegistersChangeModel(this))
-    , m_commonModel(new RegistersChangeModel(this))
+    , m_models()
 {
     m_ui->setupUi(this);
 
-    m_ui->tableViewDos->setModel(m_dosModel);
-    m_ui->tableViewPco->setModel(m_pcoModel);
-    m_ui->tableViewCommon->setModel(m_commonModel);
+    m_models[Dos] = new RegistersChangeModel(this);
+    m_models[Pco] = new RegistersChangeModel(this);
+    m_models[Common] = new RegistersChangeModel(this);
+
+    m_ui->tableViewDos->setModel(m_models[Dos]);
+    m_ui->tableViewPco->setModel(m_models[Pco]);
+    m_ui->tableViewCommon->setModel(m_models[Common]);
 
     m_ui->tableViewDos->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     m_ui->tableViewPco->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
@@ -31,23 +33,27 @@ RegistersDialog::RegistersDialog(QWidget *parent)
     });
 
     connect(m_ui->pushButtonSaveAll, &QPushButton::clicked, [this] {
-        emit saveRegisters(Dos, m_dosModel->registers());
-        emit saveRegisters(Pco, m_pcoModel->registers());
-        emit saveRegisters(Common, m_commonModel->registers());
+        emit saveRegisters(Dos);
+        emit saveRegisters(Pco);
+        emit saveRegisters(Common);
     });
 
     connect(m_ui->pushButtonSaveCurrent, &QPushButton::clicked, [this] {
-        emit saveRegisters(currentTabType(), currentVectorByTab(currentTabType()));
+        emit saveRegisters(currentTabType());
     });
 }
 
 void RegistersDialog::setRegisters(RegisterType type, QVector<Register> *registers)
 {
-    switch (type) {
-        case Common: m_commonModel->setRegisters(*registers); break;
-        case Dos: m_dosModel->setRegisters(*registers); break;
-        case Pco: m_pcoModel->setRegisters(*registers); break;
+    if (!m_models.contains(type) || !m_models[type]) {
+        qWarning() << "No model exists for RegisterType" << type;
+        return;
     }
+    if (!registers) {
+        qWarning() << "Null registers provided for type" << type;
+        return;
+    }
+    m_models[type]->setRegisters(*registers);
 }
 
 RegistersDialog::~RegistersDialog()
@@ -64,13 +70,4 @@ RegisterType RegistersDialog::currentTabType()
     else if (tabIndex == 2) return Pco;
 
     return {};
-}
-
-QVector<Register> &RegistersDialog::currentVectorByTab(RegisterType)
-{
-    switch (currentTabType()) {
-        case Common: return m_commonModel->registers();
-        case Dos: return m_dosModel->registers();
-        case Pco: return m_pcoModel->registers();
-    }
 }

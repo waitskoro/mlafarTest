@@ -15,6 +15,9 @@ public:
     QVector<Register> *registers(RegisterType);
     void saveRegisters(RegisterType, QVector<Register> &);
 
+signals:
+    void registers(QMap<RegisterType, QVector<Register>> *);
+
 private:
     void createFile();
     void writeInFile();

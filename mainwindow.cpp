@@ -7,6 +7,7 @@
 
 #include "registers/registersdialog.h"
 #include "registers/registersmanager.h"
+#include "registers/registersdatamodel.h"
 
 using namespace Registers;
 using namespace Connection;
@@ -14,18 +15,20 @@ using namespace Connection;
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , m_ui(new Ui::MainWindow)
-    , m_registersManager(new RegistersManager(this))
     , m_connectionParameters(new ConnectionParameters(this))
     , m_connectionDialog(new ConnectionDialog(m_connectionParameters, this))
     , m_connectionManager(new ConnectionManager(m_connectionParameters, this))
     , m_registersDialog(new Registers::RegistersDialog(this))
-    , m_dataModel(new QMap<RegisterType, RegistersChangeModel>())
-    , m_changeModel(new QMap<RegisterType, RegistersChangeModel>())
+    , m_registersManager(new RegistersManager(this))
 {
     m_ui->setupUi(this);
 
     initRegisters();
     initConnection();
+
+    m_ui->tableViewDos->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    m_ui->tableViewPco->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    m_ui->tableViewCommon->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
     connect(m_ui->actionExit, &QAction::triggered, [this]() { close(); });
 }
@@ -37,31 +40,31 @@ MainWindow::~MainWindow()
 
 void MainWindow::initRegisters()
 {
+    m_ui->tableViewDos->setModel(m_registersManager->modelData(Dos));
+    m_ui->tableViewPco->setModel(m_registersManager->modelData(Pco));
+    m_ui->tableViewCommon->setModel(m_registersManager->modelData(Common));
+
     connect(m_ui->actionRegisters, &QAction::triggered, [this] {
         m_registersDialog->show();
     });
 
     connect(m_registersDialog, &RegistersDialog::neededAllRegisters, [this]() {
-        m_registersDialog->setRegisters(Dos, m_registersManager->registers(Dos));
-        m_registersDialog->setRegisters(Pco, m_registersManager->registers(Pco));
-        m_registersDialog->setRegisters(Common, m_registersManager->registers(Common));
+        updateAllRegisters();
     });
 
     connect(m_registersDialog,
             &RegistersDialog::neededRegisters,
             [this](RegisterType type) {
-                m_registersDialog->setRegisters(type, m_registersManager->registers(type));
+                m_registersDialog->setRegisters(type, m_registersManager->changeRegisters(type));
             });
 
     connect(m_registersDialog,
             &RegistersDialog::saveRegisters,
-            [this](RegisterType type, QVector<Register> &regs) {
-                m_registersManager->saveRegisters(type, regs);
+            [this](RegisterType type) {
+                m_registersManager->saveRegisters(type);
             });
 
-    m_registersDialog->setRegisters(Dos, m_registersManager->registers(Dos));
-    m_registersDialog->setRegisters(Pco, m_registersManager->registers(Pco));
-    m_registersDialog->setRegisters(Common, m_registersManager->registers(Common));
+    updateAllRegisters();
 }
 
 void MainWindow::initConnection()
@@ -71,16 +74,25 @@ void MainWindow::initConnection()
     });
 
     connect(m_ui->actionConnection, &QAction::triggered, [this](){
-        if (m_ui->actionConnection->text() == "Подключиться")
+        if (m_ui->actionConnection->text() == "Подключиться") {
             m_connectionManager->connectToServer();
-        else if (m_ui->actionConnection->text() == "Отключиться")
+        } else {
             m_connectionManager->disconnectFromDevice();
+        }
     });
 
     connect(m_connectionManager,
             &ConnectionManager::stateChanged,
             [this](bool state){
-                state ? m_ui->actionConnection->setText("Отключиться")
-                      : m_ui->actionConnection->setText("Подключиться");
-    });
+                m_ui->actionConnection->setText(state ? "Отключиться"
+                                                      : "Подключиться");
+            });
+}
+
+void MainWindow::updateAllRegisters()
+{
+    for (const auto type : types) {
+        m_registersDialog->setRegisters(type,
+                                        m_registersManager->changeRegisters(type));
+    }
 }
