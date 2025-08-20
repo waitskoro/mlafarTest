@@ -18,6 +18,9 @@ class ConnectionDialog : public QDialog
 public:
     explicit ConnectionDialog(ConnectionParameters *parametrs, QWidget *parent = nullptr);
     ~ConnectionDialog();
+signals:
+    void saveConnection(ConnectionParameters *);
+
 private:
     void updateUiFromParameters();
 

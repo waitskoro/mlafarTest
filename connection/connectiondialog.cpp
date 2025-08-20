@@ -58,6 +58,7 @@ void ConnectionDialog::onSaveClicked()
     m_parameters->setResponseTimeout(ui->lineEditResponseTimeout->text().toInt());
     m_parameters->setProtocol(protocolMap.value(ui->comboBoxIPv->currentIndex()));
 
+    emit saveConnection(m_parameters);
     accept();
 }
 

@@ -8,9 +8,9 @@ RegistersChangeModel::RegistersChangeModel(QObject *parent)
     : QAbstractListModel(parent)
 {}
 
-QVector<Register> &RegistersChangeModel::registers()
+QVector<Register> *RegistersChangeModel::registers()
 {
-    return m_registers;
+    return &m_registers;
 }
 
 void RegistersChangeModel::setRegisters(QVector<Register> &registers)
@@ -40,9 +40,6 @@ int RegistersChangeModel::rowCount(const QModelIndex &parent) const
 bool RegistersChangeModel::insertRows(int row, int count, const QModelIndex& parent)
 {
     beginInsertRows (parent, row, row+count);
-
-//    m_registers.append()
-
     endInsertRows ();
     return true;
 }

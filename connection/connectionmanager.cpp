@@ -11,15 +11,15 @@ ConnectionManager::ConnectionManager(ConnectionParameters *parameters,
     , m_client(new ModBusClient(parameters, this))
     , m_parameters(parameters)
 {
-    connect(m_parameters,
-            &ConnectionParameters::parametersChanged,
-            this,
-            &ConnectionManager::onParametersChanged);
-
     connect(m_client,
             &ModBusClient::stateChanged,
             this,
             &ConnectionManager::stateChanged);
+
+    connect(m_client,
+            &ModBusClient::registersRead,
+            this,
+            &ConnectionManager::registersRead);    
 }
 
 void ConnectionManager::connectToServer()
@@ -32,7 +32,7 @@ void ConnectionManager::disconnectFromDevice()
     m_client->disconnectFromDevice();
 }
 
-void ConnectionManager::onParametersChanged()
+void ConnectionManager::readRegisters(Registers::RegisterType type, QVector<Registers::Register> *registers)
 {
-
+    m_client->readRegisters(type, registers);
 }

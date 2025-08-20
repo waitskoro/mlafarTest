@@ -4,6 +4,8 @@
 
 #include "registers/iregistersparameters.h"
 
+class JsonDataParser;
+
 namespace Ui {
 class MainWindow;
 }
@@ -16,7 +18,6 @@ class RegistersManager;
 namespace Connection {
 class ConnectionDialog;
 class ConnectionManager;
-class ConnectionParameters;
 }
 
 class MainWindow : public QMainWindow
@@ -28,16 +29,19 @@ public:
     ~MainWindow();
 
 private:
+    void readRegisters();
     void initRegisters();
     void initConnection();
     void updateAllRegisters();
 
     Ui::MainWindow *m_ui;
 
-    Connection::ConnectionParameters *m_connectionParameters;
+    JsonDataParser *m_jsonParser;
+
     Connection::ConnectionDialog *m_connectionDialog;
     Connection::ConnectionManager *m_connectionManager;
 
     Registers::RegistersDialog *m_registersDialog;
     Registers::RegistersManager *m_registersManager;
+
 };

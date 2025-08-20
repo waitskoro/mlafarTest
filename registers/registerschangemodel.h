@@ -12,7 +12,7 @@ class RegistersChangeModel : public QAbstractListModel
 public:
     explicit RegistersChangeModel(QObject *parent = nullptr);
 
-    QVector<Register> &registers();
+    QVector<Register> *registers();
     void setRegisters(QVector<Register> &);
 
 private:

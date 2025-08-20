@@ -57,7 +57,7 @@ public:
     QString access;
     QString address;
     QString description;
-    int value;
+    QString value = "0";
 };
 
 }

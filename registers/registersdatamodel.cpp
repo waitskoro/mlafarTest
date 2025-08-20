@@ -4,13 +4,19 @@ using namespace Registers;
 
 RegistersDataModel::RegistersDataModel(QObject *parent)
     : QAbstractListModel(parent)
+    , m_registers(new QVector<Register>())
 {
 
 }
 
-void RegistersDataModel::setRegisters(QVector<Register> &registers)
+QVector<Register> *RegistersDataModel::registers()
 {
-    if (registers.isEmpty())
+    return m_registers;
+}
+
+void RegistersDataModel::setRegisters(QVector<Register> *registers)
+{
+    if (registers->isEmpty())
         return;
 
     beginResetModel();
@@ -21,7 +27,7 @@ void RegistersDataModel::setRegisters(QVector<Register> &registers)
 int RegistersDataModel::rowCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent)
-    return m_registers.count();
+    return m_registers->count();
 }
 
 int RegistersDataModel::columnCount(const QModelIndex &parent) const
@@ -32,16 +38,16 @@ int RegistersDataModel::columnCount(const QModelIndex &parent) const
 
 QVariant RegistersDataModel::data(const QModelIndex &index, int role) const
 {
-    if (!index.isValid() || index.row() >= m_registers.size())
+    if (!index.isValid() || index.row() >= m_registers->size())
         return QVariant();
 
-    const Register &reg = m_registers.at(index.row());
+    const Register &reg = m_registers->at(index.row());
 
     if (role == Qt::EditRole || role == Qt::DisplayRole) {
         switch (index.column()) {
         case 0: return reg.name;
         case 1: return reg.description;
-        case 2: return 0;
+        case 2: return reg.value;
         case 3: return reg.address;
         }
     }

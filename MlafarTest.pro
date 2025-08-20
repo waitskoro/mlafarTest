@@ -13,25 +13,27 @@ SOURCES += \
     connection/connectionmanager.cpp \
     connection/connectionparameters.cpp \
     connection/modbusclient.cpp \
+    jsondataparser.cpp \
     main.cpp \
     mainwindow.cpp \
     registers/registerschangemodel.cpp \
     registers/registersdatamodel.cpp \
-    registers/registersdataparser.cpp \
     registers/registersdialog.cpp \
     registers/registersmanager.cpp
 
 HEADERS += \
     connection/connectiondialog.h \
+    connection/connectionjsonconverter.h \
     connection/connectionmanager.h \
     connection/connectionparameters.h \
     connection/modbusclient.h \
+    jsondataparser.h \
     mainwindow.h \
     registers/iregistersparameters.h \
     registers/registerschangemodel.h \
     registers/registersdatamodel.h \
-    registers/registersdataparser.h \
     registers/registersdialog.h \
+    registers/registersjsonconverter.h \
     registers/registersmanager.h
 
 FORMS += \

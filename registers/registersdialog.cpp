@@ -33,13 +33,13 @@ RegistersDialog::RegistersDialog(QWidget *parent)
     });
 
     connect(m_ui->pushButtonSaveAll, &QPushButton::clicked, [this] {
-        emit saveRegisters(Dos);
-        emit saveRegisters(Pco);
-        emit saveRegisters(Common);
+        emit saveRegisters(Dos, m_models[Dos]->registers());
+        emit saveRegisters(Pco, m_models[Pco]->registers());
+        emit saveRegisters(Common, m_models[Common]->registers());
     });
 
     connect(m_ui->pushButtonSaveCurrent, &QPushButton::clicked, [this] {
-        emit saveRegisters(currentTabType());
+        emit saveRegisters(currentTabType(), m_models[currentTabType()]->registers());
     });
 }
 

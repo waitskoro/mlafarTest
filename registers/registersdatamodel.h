@@ -12,7 +12,8 @@ class RegistersDataModel : public QAbstractListModel
 public:
     explicit RegistersDataModel(QObject *parent = nullptr);
 
-    void setRegisters(QVector<Register> &);
+    QVector<Register> *registers();
+    void setRegisters(QVector<Register> *);
 signals:
 
 private:
@@ -21,7 +22,7 @@ private:
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
     QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
 
-    QVector<Register> m_registers;
+    QVector<Register> *m_registers;
 };
 
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include "registers/iregistersparameters.h"
 
 namespace Connection {
 
@@ -16,15 +17,15 @@ public:
 
     void connectToServer();
     void disconnectFromDevice();
+    void readRegisters(Registers::RegisterType, QVector<Registers::Register> *);
 
 signals:
     void stateChanged(bool connection);
+    void registersRead(Registers::RegisterType, QVector<Registers::Register> *);
 
 private:
     ModBusClient *m_client;
     ConnectionParameters *m_parameters;
-
-    void onParametersChanged();
 
 };
 

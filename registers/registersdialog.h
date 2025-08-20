@@ -26,8 +26,8 @@ public:
 
 signals:
     void neededAllRegisters();
-    void saveRegisters(RegisterType);
     void neededRegisters(RegisterType);
+    void saveRegisters(RegisterType, QVector<Register> *);
 
 private:
     RegisterType currentTabType();

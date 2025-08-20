@@ -7,7 +7,6 @@
 namespace Registers {
 
 class RegistersDataModel;
-class RegistersDataParser;
 class RegistersChangeModel;
 
 class RegistersManager : public QObject
@@ -16,15 +15,16 @@ class RegistersManager : public QObject
 public:
     explicit RegistersManager(QObject *parent = nullptr);
 
+    QVector<Register> *registers(RegisterType);
+    void setRegisters(RegisterType, QVector<Register> *);
+
     RegistersDataModel *modelData(RegisterType);
     RegistersChangeModel *modelChange(RegisterType);
 
-    void saveRegisters(RegisterType type);
-    QVector<Register> *changeRegisters(RegisterType);
+signals:
+    void saveRegisters(RegisterType, QVector<Register> *);
 
 private:
-    RegistersDataParser *m_parser;
-
     QMap<RegisterType, RegistersDataModel*> m_modelsData;
     QMap<RegisterType, RegistersChangeModel*> m_modelsChange;
 };

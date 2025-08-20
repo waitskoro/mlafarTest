@@ -9,22 +9,26 @@ using namespace std;
 
 QScopedPointer<QFile> m_logFile;
 
-void messageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg);
+void messageHandler(QtMsgType type,
+                    const QMessageLogContext &context,
+                    const QString &msg);
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+    MainWindow w;
+    w.show();
 
     m_logFile.reset(new QFile("../logFile.txt"));
     m_logFile.data()->open(QFile::Append | QFile::Text);
     qInstallMessageHandler(messageHandler);
 
-    MainWindow w;
-    w.show();
     return a.exec();
 }
 
-void messageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+void messageHandler(QtMsgType type,
+                    const QMessageLogContext &context,
+                    const QString &msg)
 {
     Q_UNUSED(context)
 
