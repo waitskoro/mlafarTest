@@ -13,7 +13,7 @@ QVector<Register> *RegistersChangeModel::registers()
     return &m_registers;
 }
 
-void RegistersChangeModel::setRegisters(QVector<Register> &registers)
+void RegistersChangeModel::setRegisters(const QVector<Register> &registers)
 {
     if (registers.isEmpty())
         return;
@@ -59,10 +59,10 @@ QVariant RegistersChangeModel::data(const QModelIndex &index, int role) const
 
     if (role == Qt::EditRole || role == Qt::DisplayRole) {
         switch (index.column()) {
-        case 0: return reg.name;
-        case 1: return reg.description;
-        case 2: return reg.address;
-        case 3: return reg.type;
+        case 0: return reg.name.isEmpty() ? "" : reg.name;
+        case 1: return reg.description.isEmpty() ? "" : reg.description;
+        case 2: return reg.address.isEmpty() ? "" : reg.address;
+        case 3: return reg.type.isEmpty() ? "" : reg.type;
         }
     }
 

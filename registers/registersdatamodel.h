@@ -13,7 +13,7 @@ public:
     explicit RegistersDataModel(QObject *parent = nullptr);
 
     QVector<Register> *registers();
-    void setRegisters(QVector<Register> *);
+    void setRegisters(const QVector<Register> &registers);
 signals:
 
 private:

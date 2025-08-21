@@ -34,28 +34,13 @@
          <layout class="QVBoxLayout" name="verticalLayout_2">
           <item>
            <layout class="QGridLayout" name="gridLayout_2">
-            <item row="3" column="0">
-             <layout class="QHBoxLayout" name="horizontalLayout_2">
-              <item>
-               <widget class="QLabel" name="label_2">
-                <property name="text">
-                 <string>ДОС</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="label">
-              <property name="text">
-               <string>Общие</string>
-              </property>
-             </widget>
-            </item>
-            <item row="4" column="0">
+            <item row="2" column="0">
              <widget class="QTableView" name="tableViewDos"/>
             </item>
-            <item row="5" column="0">
+            <item row="4" column="0">
+             <widget class="QTableView" name="tableViewPco"/>
+            </item>
+            <item row="3" column="0">
              <layout class="QHBoxLayout" name="horizontalLayout">
               <item>
                <widget class="QLabel" name="label_3">
@@ -163,11 +148,16 @@
               </item>
              </layout>
             </item>
-            <item row="6" column="0">
-             <widget class="QTableView" name="tableViewPco"/>
-            </item>
-            <item row="2" column="0">
-             <widget class="QTableView" name="tableViewCommon"/>
+            <item row="1" column="0">
+             <layout class="QHBoxLayout" name="horizontalLayout_2">
+              <item>
+               <widget class="QLabel" name="label_2">
+                <property name="text">
+                 <string>ДОС</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </item>
            </layout>
           </item>

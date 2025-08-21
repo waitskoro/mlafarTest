@@ -13,7 +13,7 @@ public:
     explicit RegistersChangeModel(QObject *parent = nullptr);
 
     QVector<Register> *registers();
-    void setRegisters(QVector<Register> &);
+    void setRegisters(const QVector<Register> &registers);
 
 private:
     Qt::ItemFlags flags(const QModelIndex &index) const override;

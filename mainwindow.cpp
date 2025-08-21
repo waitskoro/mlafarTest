@@ -20,19 +20,19 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , m_ui(new Ui::MainWindow)
     , m_jsonParser(new JsonDataParser(this))
-    , m_connectionDialog(new ConnectionDialog(m_jsonParser->readConnectionParameters(), this))
-    , m_connectionManager(new ConnectionManager(m_jsonParser->readConnectionParameters(), this))
-    , m_registersDialog(new Registers::RegistersDialog(this))
-    , m_registersManager(new RegistersManager(this))
 {
     m_ui->setupUi(this);
+
+    m_connectionDialog = new ConnectionDialog(m_jsonParser->readConnectionParameters(), this);
+    m_connectionManager = new ConnectionManager(m_jsonParser->readConnectionParameters(), this);
+    m_registersDialog = new Registers::RegistersDialog(this);
+    m_registersManager = new RegistersManager(m_jsonParser, this);
 
     initRegisters();
     initConnection();
 
     m_ui->tableViewDos->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     m_ui->tableViewPco->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    m_ui->tableViewCommon->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
     connect(m_ui->actionExit, &QAction::triggered, [this]() { close(); });
 }
@@ -46,9 +46,10 @@ void MainWindow::initRegisters()
 {
     updateAllRegisters();
 
+    m_registersDialog->setModels(m_registersManager->modelChange());
+
     m_ui->tableViewDos->setModel(m_registersManager->modelData(Dos));
     m_ui->tableViewPco->setModel(m_registersManager->modelData(Pco));
-    m_ui->tableViewCommon->setModel(m_registersManager->modelData(Common));
 
     connect(m_ui->actionRegisters, &QAction::triggered, [this] {
         m_registersDialog->show();
@@ -60,9 +61,8 @@ void MainWindow::initRegisters()
 
     connect(m_registersDialog,
             &RegistersDialog::neededRegisters,
-            [this](RegisterType type) {
-                m_registersDialog->setRegisters(type,
-                                                m_registersManager->registers(type));
+            [this](RegisterType) {
+                m_registersDialog->setModels(m_registersManager->modelChange());
             });
 
     connect(m_registersDialog,
@@ -106,28 +106,24 @@ void MainWindow::initConnection()
     connect(m_connectionManager,
             &ConnectionManager::registersRead,
             [this](Registers::RegisterType type, QVector<Registers::Register> *registers){
-                m_registersManager->setRegisters(type, registers);
+                m_registersManager->updateRegistersValues(type, registers);
             });
 }
 
 void MainWindow::readRegisters()
 {
-    QTimer *m_timer = new QTimer();
-    m_timer->setInterval(1000);
-    m_timer->start();
+    QTimer *timer = new QTimer(this);
+    timer->setInterval(1000);
+    timer->start();
 
-    connect(m_timer, &QTimer::timeout, [this](){
-        for (const auto type : types) {
-            m_connectionManager->readRegisters(type, m_jsonParser->readRegisters(type));
-            m_registersManager->setRegisters(type, m_jsonParser->readRegisters(type));
+    connect(timer, &QTimer::timeout, [this](){
+        for (const auto type : typesData) {
+            m_connectionManager->readRegisters(type, m_registersManager->registers(type));
         }
     });
 }
 
 void MainWindow::updateAllRegisters()
 {
-    for (const auto type : types) {
-        m_registersDialog->setRegisters(type, m_jsonParser->readRegisters(type));
-        m_registersManager->setRegisters(type, m_jsonParser->readRegisters(type));
-    }
+    m_registersDialog->setModels(m_registersManager->modelChange());
 }

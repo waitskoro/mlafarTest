@@ -108,28 +108,44 @@ bool JsonDataParser::writeConnectionParameters(Connection::ConnectionParameters 
     return writeJsonFile(PATH_CONNECTION, rootObj);
 }
 
-QVector<Registers::Register> *JsonDataParser::readRegisters(Registers::RegisterType type)
+QMap<Registers::RegisterType, QVector<Registers::Register>> JsonDataParser::readRegisters()
 {
     bool success = false;
     QJsonDocument doc = readJsonFile(PATH_REGISTERS, success);
 
     if (!success || !doc.isObject()) {
-        return nullptr;
+        qWarning() << "Failed to read or parse JSON file:" << PATH_REGISTERS;
+        return {};
     }
 
     QJsonObject rootObj = doc.object();
-    QString typeKey = registerTypeToString(type);
 
-    if (rootObj.contains(typeKey)) {
-        QJsonArray registersArray = rootObj[typeKey].toArray();
-        auto registers = new QVector<Register>();
-        *registers = registersFromJsonArray(registersArray);
-        return registers;
+    QMap<Registers::RegisterType, QVector<Registers::Register>> registersMap = {
+        {Registers::Common, QVector<Registers::Register>()},
+        {Registers::Dos, QVector<Registers::Register>()},
+        {Registers::Pco, QVector<Registers::Register>()}
+    };
+
+    for (auto it = registersMap.begin(); it != registersMap.end(); ++it) {
+        Registers::RegisterType type = it.key();
+        QString typeKey = registerTypeToString(type);
+
+        if (rootObj.contains(typeKey) && rootObj[typeKey].isArray()) {
+            QJsonArray registersArray = rootObj[typeKey].toArray();
+            QVector<Registers::Register> registers = registersFromJsonArray(registersArray);
+
+            if (!registers.isEmpty()) {
+                it.value() = std::move(registers);
+                qDebug() << "Loaded" << it.value().size() << "registers for type:" << typeKey;
+            } else {
+                qWarning() << "Empty registers array for type:" << typeKey;
+            }
+        } else {
+            qWarning() << "No registers found or invalid format for type:" << typeKey;
+        }
     }
 
-    qWarning() << "No registers found for type:" << typeKey;
-
-    return nullptr;
+    return registersMap;
 }
 
 bool JsonDataParser::writeRegisters(Registers::RegisterType type, const QVector<Registers::Register>& registers)
@@ -144,6 +160,8 @@ bool JsonDataParser::writeRegisters(Registers::RegisterType type, const QVector<
 
     QString typeKey = registerTypeToString(type);
     rootObject[typeKey] = registersToJsonArray(registers);
+
+    emit registersChanged();
 
     return writeJsonFile(PATH_REGISTERS, rootObject);
 }

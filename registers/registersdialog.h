@@ -20,8 +20,7 @@ class RegistersDialog : public QDialog
 public:
     explicit RegistersDialog(QWidget *parent = nullptr);
 
-    void setRegisters(RegisterType type, QVector<Register> *registers);
-
+    void setModels(QMap<RegisterType, RegistersChangeModel*>);
     ~RegistersDialog();
 
 signals:

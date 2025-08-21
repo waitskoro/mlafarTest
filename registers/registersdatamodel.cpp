@@ -14,13 +14,13 @@ QVector<Register> *RegistersDataModel::registers()
     return m_registers;
 }
 
-void RegistersDataModel::setRegisters(QVector<Register> *registers)
+void RegistersDataModel::setRegisters(const QVector<Register> &registers)
 {
-    if (registers->isEmpty())
+    if (registers.isEmpty())
         return;
 
     beginResetModel();
-    m_registers = registers;
+    *m_registers = registers;
     endResetModel();
 }
 

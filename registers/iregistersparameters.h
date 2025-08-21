@@ -13,7 +13,8 @@ enum RegisterType {
     Common
 };
 
-const std::array<RegisterType, 3> types = {Pco, Dos, Common};
+const std::array<RegisterType, 2> typesData = {Pco, Dos};
+const std::array<RegisterType, 3> typesChange = {Pco, Dos, Common};
 
 class Register {
 
@@ -52,11 +53,11 @@ public:
         return registers;
     }
 
-    QString type;
-    QString name;
-    QString access;
-    QString address;
-    QString description;
+    QString type = "";
+    QString name = "";
+    QString access = "";
+    QString address = "";
+    QString description = "";
     QString value = "0";
 };
 

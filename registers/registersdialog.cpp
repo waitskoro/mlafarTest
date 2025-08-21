@@ -12,14 +12,6 @@ RegistersDialog::RegistersDialog(QWidget *parent)
 {
     m_ui->setupUi(this);
 
-    m_models[Dos] = new RegistersChangeModel(this);
-    m_models[Pco] = new RegistersChangeModel(this);
-    m_models[Common] = new RegistersChangeModel(this);
-
-    m_ui->tableViewDos->setModel(m_models[Dos]);
-    m_ui->tableViewPco->setModel(m_models[Pco]);
-    m_ui->tableViewCommon->setModel(m_models[Common]);
-
     m_ui->tableViewDos->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     m_ui->tableViewPco->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     m_ui->tableViewCommon->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
@@ -43,17 +35,15 @@ RegistersDialog::RegistersDialog(QWidget *parent)
     });
 }
 
-void RegistersDialog::setRegisters(RegisterType type, QVector<Register> *registers)
+void RegistersDialog::setModels(QMap<RegisterType, RegistersChangeModel*> registers)
 {
-    if (!m_models.contains(type) || !m_models[type]) {
-        qWarning() << "No model exists for RegisterType" << type;
-        return;
+    for (const auto type : typesChange) {
+        m_models[type] = registers[type];
     }
-    if (!registers) {
-        qWarning() << "Null registers provided for type" << type;
-        return;
-    }
-    m_models[type]->setRegisters(*registers);
+
+    m_ui->tableViewCommon->setModel(m_models[Common]);
+    m_ui->tableViewPco->setModel(m_models[Pco]);
+    m_ui->tableViewDos->setModel(m_models[Dos]);
 }
 
 RegistersDialog::~RegistersDialog()

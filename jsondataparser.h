@@ -25,10 +25,13 @@ public:
     Connection::ConnectionParameters *readConnectionParameters();
     bool writeConnectionParameters(Connection::ConnectionParameters *parameters);
 
-    QVector<Registers::Register> *readRegisters(Registers::RegisterType type);
+    QMap<Registers::RegisterType, QVector<Registers::Register>> readRegisters();
     bool writeRegisters(Registers::RegisterType type, const QVector<Registers::Register>& registers);
 
     static QString registerTypeToString(Registers::RegisterType type);
     static Registers::RegisterType stringToRegisterType(const QString &str);
+
+signals:
+    void registersChanged();
 };
 
