@@ -37,7 +37,7 @@ void ConnectionManager::setPcoUnitId(int index)
     m_client->setPcoUnitId(index);
 }
 
-void ConnectionManager::readRegisters(Registers::RegisterType type, QVector<Registers::Register> *registers)
+void ConnectionManager::readRegisters(Registers::RegisterType type, QVector<Registers::Register> *registers, int unitId)
 {
-    m_client->readRegisters(type, registers);
+    m_client->readRegisters(*registers, type, unitId);
 }

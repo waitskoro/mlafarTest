@@ -2,7 +2,6 @@
 #include "ui_mainwindow.h"
 
 #include <QTimer>
-
 #include "jsondataparser.h"
 
 #include "connection/connectiondialog.h"
@@ -122,7 +121,9 @@ void MainWindow::readRegisters()
 
     connect(timer, &QTimer::timeout, [this](){
         for (const auto type : typesData) {
-            m_connectionManager->readRegisters(type, m_registersManager->registers(type));
+            m_connectionManager->readRegisters(type,
+                                               m_registersManager->registers(type),
+                                               m_ui->comboBox->currentIndex() + 1);
         }
     });
 }

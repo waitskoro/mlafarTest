@@ -34,6 +34,17 @@
          <layout class="QVBoxLayout" name="verticalLayout_2">
           <item>
            <layout class="QGridLayout" name="gridLayout_2">
+            <item row="1" column="0">
+             <layout class="QHBoxLayout" name="horizontalLayout_2">
+              <item>
+               <widget class="QLabel" name="label_2">
+                <property name="text">
+                 <string>ДОС</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
             <item row="2" column="0">
              <widget class="QTableView" name="tableViewDos"/>
             </item>
@@ -145,17 +156,6 @@
                  </size>
                 </property>
                </spacer>
-              </item>
-             </layout>
-            </item>
-            <item row="1" column="0">
-             <layout class="QHBoxLayout" name="horizontalLayout_2">
-              <item>
-               <widget class="QLabel" name="label_2">
-                <property name="text">
-                 <string>ДОС</string>
-                </property>
-               </widget>
               </item>
              </layout>
             </item>

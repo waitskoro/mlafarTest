@@ -18,7 +18,7 @@ public:
     void connectToServer();
     void disconnectFromDevice();
     void setPcoUnitId(int index);
-    void readRegisters(Registers::RegisterType, QVector<Registers::Register> *);
+    void readRegisters(Registers::RegisterType, QVector<Registers::Register> *, int);
 
 signals:
     void stateChanged(bool connection);

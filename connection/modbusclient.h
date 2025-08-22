@@ -7,7 +7,7 @@
 #include "registers/iregistersparameters.h"
 
 class QModbusReply;
-class QModbusClient;
+class QModbusTcpClient;
 
 namespace Connection {
 
@@ -24,38 +24,34 @@ public:
     void connectToServer();
     void disconnectFromDevice();
     void setPcoUnitId(int index);
-    void readRegisters(Registers::RegisterType, QVector<Registers::Register> *);
 
+    void readRegisters(const QVector<Registers::Register> &registers,
+                       Registers::RegisterType,
+                       int unitId);
 signals:
-    void connectionErrorOccurred();
     void stateChanged(bool connection);
-    void registersRead(Registers::RegisterType, QVector<Registers::Register> registers);
+    void registersRead(Registers::RegisterType, QVector<Registers::Register> &registers);
 
 private:
     int m_index = 1;
-    QModbusClient *m_client;
-    QModbusReply *m_lastRequest;
+
+    QModbusTcpClient *m_client;
     ConnectionParameters *m_parameters;
 
+    bool isActiveConnection();
+    quint16 convertAddress(const QString &address) const;
+
+    void onReadFinished();
+    void processReadResult(QModbusReply *reply);
+
     void onStateChanged(QModbusDevice::State state);
-    void handleReadReply(Registers::RegisterType type, QModbusReply *reply,
-                         const QMap<int, Registers::Register*> &addressToRegister,
-                         int startAddress);
-    void handleSingleRegisterReply(Registers::RegisterType type,
-                                   QModbusReply *reply,
-                                   Registers::Register &reg);
 
-    void checkAllRepliesComplete(Registers::RegisterType type,
-                                QSharedPointer<QVector<Registers::Register>> registers,
-                                QSharedPointer<int> pendingReplies);
+    Registers::RegisterType m_currentType;
+    QVector<Registers::Register> m_currentRegisters;
 
-    QModbusDataUnit writeRequest(Registers::Register) const;
-    QModbusDataUnit readRequest(int startAddress, int numberOfEntries) const;
-
-    int m_lastSuccessfulUnitId;
-
-    bool m_connectionError;
-    void reconnect();
+    quint16 m_success = 0;
+    quint16 m_failure = 0;
+    quint16 m_requests = 0;
 
 
 };

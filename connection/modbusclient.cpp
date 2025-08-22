@@ -20,28 +20,10 @@ int TIMEOUT_M = 3000;
 ModBusClient::ModBusClient(ConnectionParameters *parameters, QObject *parent)
     : QObject(parent)
     , m_client(new QModbusTcpClient(this))
-    , m_lastRequest(nullptr)
     , m_parameters(parameters)
-    , m_connectionError(false)
-    , m_lastSuccessfulUnitId(1)
 {
-    connect(m_client, &QModbusClient::errorOccurred, this, [this](QModbusDevice::Error error) {
-        if (error != QModbusDevice::NoError) {
-            qWarning() << "Modbus error:" << error << m_client->errorString();
-
-            // Отмечаем ошибку соединения только для критических ошибок
-            if (error == QModbusDevice::ConnectionError ||
-                error == QModbusDevice::ReadError ||
-                error == QModbusDevice::WriteError) {
-                m_connectionError = true;
-                qDebug() << "Критическая ошибка соединения, пытаемся переподключиться...";
-                QTimer::singleShot(1000, this, &ModBusClient::reconnect);
-            }
-            // Таймауты не считаем критическими ошибками соединения
-            else if (error == QModbusDevice::TimeoutError) {
-                qDebug() << "Таймаут запроса (возможно неверный Unit ID)";
-            }
-        }
+    connect(m_client, &QModbusClient::errorOccurred, [this]() {
+        qDebug() << m_client->errorString();
     });
 
     connect(m_client, &QModbusClient::stateChanged,
@@ -60,8 +42,6 @@ void ModBusClient::connectToServer()
     if (m_client)
         m_client->disconnectDevice();
 
-    m_connectionError = false;
-
     if (m_client->state() != QModbusDevice::ConnectedState) {
         const QUrl url = m_parameters->url();
 
@@ -71,22 +51,10 @@ void ModBusClient::connectToServer()
 
         if (!m_client->connectDevice()) {
             qWarning() << "Connection attempt failed to start: " << m_client->errorString();
-            m_connectionError = true;
         }
 
     } else {
         m_client->disconnectDevice();
-    }
-}
-
-void ModBusClient::reconnect()
-{
-    if (m_connectionError) {
-        qDebug() << "Переподключение к устройству...";
-        disconnectFromDevice();
-        QTimer::singleShot(500, this, [this]() {
-            connectToServer();
-        });
     }
 }
 
@@ -95,25 +63,140 @@ void ModBusClient::disconnectFromDevice()
     if (m_client->state() != QModbusDevice::UnconnectedState) {
         m_client->disconnectDevice();
     }
-    m_connectionError = false;
 }
 
 void ModBusClient::setPcoUnitId(int index)
 {
-    int previousIndex = m_index;
     m_index = index;
     qDebug() << "Unit ID установлен на:" << m_index;
+}
 
-    // Если переключаемся с нерабочего unit ID на рабочий, принудительно переподключаемся
-    if (previousIndex != m_index && m_index == m_lastSuccessfulUnitId) {
-        qDebug() << "Переключение на рабочий Unit ID, принудительное переподключение...";
-        m_connectionError = true;
-        reconnect();
+void ModBusClient::onReadFinished()
+{
+    auto *reply = qobject_cast<QModbusReply *>(sender());
+    if (!reply) {
+        return;
     }
 
-    // При смене unit ID сбрасываем возможные временные ошибки
-    if (m_client->state() == QModbusDevice::ConnectedState) {
-        m_connectionError = false;
+    processReadResult(reply);
+    reply->deleteLater();
+}
+
+void ModBusClient::processReadResult(QModbusReply *reply)
+{
+    if (reply->error() != QModbusDevice::NoError) {
+            qDebug() << "Modbus error: " << reply->errorString();
+            return;
+        }
+
+        const QModbusDataUnit unit = reply->result();
+        const QVector<quint16> values = unit.values();
+
+        for (auto &reg : m_currentRegisters) {
+            quint16 addr = convertAddress(reg.address);
+            int index = addr - unit.startAddress();
+
+            if (index < 0 || index >= values.size()) {
+                reg.value = "N/A";
+                continue;
+            }
+
+            if (reg.type == "uint16") {
+                reg.value = QString::number(values[index]);
+            } else if (reg.type == "int16") {
+                reg.value = QString::number(static_cast<int16_t>(values[index]));
+            } else if (reg.type == "uint32") {
+                if (index + 1 < values.size()) {
+                    quint32 val = (static_cast<quint32>(values[index + 1]) << 16) | values[index];
+                    reg.value = QString::number(val);
+                }
+            } else if (reg.type == "int32") {
+                if (index + 1 < values.size()) {
+                    int32_t val = (static_cast<int32_t>(values[index + 1]) << 16) | values[index];
+                    reg.value = QString::number(val);
+                }
+            } else if (reg.type == "uint64") {
+                if (index + 3 < values.size()) {
+                    quint64 val = (static_cast<quint64>(values[index + 3]) << 48) |
+                                  (static_cast<quint64>(values[index + 2]) << 32) |
+                                  (static_cast<quint64>(values[index + 1]) << 16) |
+                                  values[index];
+                    reg.value = QString::number(val);
+                }
+            } else if (reg.type.startsWith("char[")) {
+                QString str;
+                int strLength = reg.type.mid(reg.type.indexOf('[') + 1).remove(']').toInt();
+                for (int i = 0; i < (strLength + 1) / 2 && index + i < values.size(); i++) {
+                    quint16 regValue = values[index + i];
+                    str.append(QChar(regValue & 0xFF)); // Младший байт
+                    str.append(QChar(regValue >> 8));   // Старший байт
+                }
+                reg.value = str.trimmed();
+            }
+        }
+
+        emit registersRead(m_currentType, m_currentRegisters);
+}
+
+bool ModBusClient::isActiveConnection()
+{
+    return m_client && m_client->state() == QModbusDevice::ConnectedState;
+}
+
+void ModBusClient::readRegisters(const QVector<Registers::Register> &registers, Registers::RegisterType type, int unitId)
+{
+    if (!m_client || m_client->state() != QModbusDevice::ConnectedState) {
+        qDebug() << ("Modbus client not connected");
+        return;
+    }
+
+    if (registers.isEmpty()) {
+        qDebug() << "No registers to read";
+        return;
+    }
+
+    m_currentRegisters = registers;
+    m_currentType = type;
+
+    quint16 startAddress = convertAddress(registers.first().address);
+    quint16 maxEndAddress = startAddress;
+
+    for (const auto &reg : registers) {
+        quint16 currentAddr = convertAddress(reg.address);
+        quint16 endAddr = currentAddr;
+
+        if (reg.type.contains("uint32") || reg.type.contains("int32")) {
+            endAddr = currentAddr + 1;
+        } else if (reg.type.contains("uint64")) {
+            endAddr = currentAddr + 3;
+        } else if (reg.type.contains("char[")) {
+            int strLength = reg.type.mid(reg.type.indexOf('[') + 1).remove(']').toInt();
+            endAddr = currentAddr + static_cast<quint16>((strLength + 1) / 2);
+        }
+
+        if (endAddr > maxEndAddress) {
+            maxEndAddress = endAddr;
+        }
+    }
+
+    quint16 registerCount = maxEndAddress - startAddress + 1;
+
+    if (registerCount > 125) {
+        qDebug() << "Too many registers to read at once";
+        return;
+    }
+
+    QModbusDataUnit request(QModbusDataUnit::HoldingRegisters, startAddress, registerCount);
+
+    if (auto *reply = m_client->sendReadRequest(request, unitId)) {
+        if (!reply->isFinished()) {
+            connect(reply, &QModbusReply::finished, this, &ModBusClient::onReadFinished);
+        } else {
+            reply->deleteLater();
+            qDebug() << "Reply finished immediately";
+        }
+    } else {
+        qDebug() << "Failed to send read request:" << m_client->errorString();
     }
 }
 
@@ -126,7 +209,6 @@ void ModBusClient::onStateChanged(QModbusDevice::State state)
         }
         case QModbusDevice::ConnectedState: {
             qDebug() << "Подключено к серверу";
-            m_connectionError = false;
             break;
         }
         case QModbusDevice::ClosingState: {
@@ -142,122 +224,8 @@ void ModBusClient::onStateChanged(QModbusDevice::State state)
     emit stateChanged(state == QModbusDevice::ConnectedState);
 }
 
-QModbusDataUnit ModBusClient::readRequest(int startAddress, int numberOfEntries) const
+quint16 ModBusClient::convertAddress(const QString &address) const
 {
-    return QModbusDataUnit(QModbusDataUnit::RegisterType::HoldingRegisters,
-                          startAddress,
-                          numberOfEntries);
-}
-
-void ModBusClient::readRegisters(Registers::RegisterType type, QVector<Registers::Register> *registers)
-{
-    if (!m_client) {
-        qDebug() << "Modbus клиент не инициализирован";
-        return;
-    }
-
-    // Если есть ошибка соединения, пытаемся переподключиться
-    if (m_connectionError && m_client->state() == QModbusDevice::UnconnectedState) {
-        qDebug() << "Попытка переподключения из-за ошибки соединения";
-        connectToServer();
-        return;
-    }
-
-    if (m_client->state() != QModbusDevice::ConnectedState) {
-        qDebug() << "Устройство не подключено, состояние:" << m_client->state();
-        return;
-    }
-
-    // Определяем server address в зависимости от типа устройства
-    int serverAddress = 0; // По умолчанию для DOS
-    if (type == Registers::RegisterType::Pco) {
-        serverAddress = m_index;
-        qDebug() << "Чтение регистров PCO с unit ID:" << serverAddress;
-    } else {
-        qDebug() << "Чтение регистров DOS с unit ID:" << serverAddress;
-    }
-
-    if (!registers || registers->isEmpty()) {
-        qDebug() << "Пустой массив регистров для типа:" << type;
-        emit registersRead(type, *registers);
-        return;
-    }
-
-    // Создаем shared pointer для безопасного управления памятью
-    auto sharedRegisters = QSharedPointer<QVector<Registers::Register>>::create(*registers);
-    auto pendingReplies = QSharedPointer<int>::create(registers->size());
-
-    // Для каждого регистра отправляем отдельный запрос
-    for (int i = 0; i < registers->size(); ++i) {
-        bool ok;
-        int address = registers->at(i).address.toInt(&ok, 0);
-        if (!ok) {
-            qDebug() << QString("Неверный адрес регистра: %1").arg(registers->at(i).address);
-            (*pendingReplies)--;
-            checkAllRepliesComplete(type, sharedRegisters, pendingReplies);
-            continue;
-        }
-
-        QModbusDataUnit readUnit = readRequest(address, 1);
-
-        if (auto *reply = m_client->sendReadRequest(readUnit, serverAddress)) {
-            connect(reply, &QModbusReply::finished, this,
-                   [this, type, reply, i, sharedRegisters, pendingReplies]() {
-                handleSingleRegisterReply(type, reply, (*sharedRegisters)[i]);
-                reply->deleteLater();
-
-                // Уменьшаем счетчик ожидаемых ответов
-                (*pendingReplies)--;
-                checkAllRepliesComplete(type, sharedRegisters, pendingReplies);
-            });
-        } else {
-            qDebug() << "Ошибка отправки запроса для адреса" << address << ":" << m_client->errorString();
-            (*pendingReplies)--;
-            checkAllRepliesComplete(type, sharedRegisters, pendingReplies);
-        }
-
-        // Небольшая задержка между запросами
-        QThread::msleep(5);
-    }
-
-    // Проверяем, не завершились ли все запросы сразу
-    checkAllRepliesComplete(type, sharedRegisters, pendingReplies);
-}
-
-void ModBusClient::checkAllRepliesComplete(Registers::RegisterType type,
-                                          QSharedPointer<QVector<Registers::Register>> registers,
-                                          QSharedPointer<int> pendingReplies)
-{
-    if (*pendingReplies <= 0) {
-        qDebug() << "Все запросы завершены, отправляем сигнал registersRead";
-        // Отправляем копию регистров, а не указатель
-        emit registersRead(type, *registers);
-    }
-}
-
-void ModBusClient::handleSingleRegisterReply(Registers::RegisterType type, QModbusReply *reply, Registers::Register &reg)
-{
-    if (reply->error() == QModbusDevice::NoError) {
-        const auto unit = reply->result();
-        if (unit.valueCount() > 0) {
-            quint16 value = unit.value(0);
-            reg.value = QString::number(value);
-            m_connectionError = false; // Сбрасываем ошибку при успешном ответе
-
-            // Запоминаем последний рабочий unit ID
-            if (type == Registers::RegisterType::Pco) {
-                m_lastSuccessfulUnitId = m_index;
-            }
-
-            qDebug() << "Регистр" << reg.address << "прочитан успешно, значение:" << value;
-        }
-    } else {
-        qDebug() << "Ошибка ответа для адреса" << reg.address << ": " + reply->errorString();
-
-        if (reply->error() == QModbusDevice::TimeoutError) {
-            qDebug() << "Таймаут запроса для адреса" << reg.address << "(Unit ID:" << m_index << ")";
-        } else {
-            m_connectionError = true;
-        }
-    }
+    bool ok;
+    return address.toUShort(&ok, 16);
 }
