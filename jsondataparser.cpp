@@ -139,9 +139,21 @@ QMap<Registers::RegisterType, QVector<Registers::Register>> JsonDataParser::read
                 qDebug() << "Loaded" << it.value().size() << "registers for type:" << typeKey;
             } else {
                 qWarning() << "Empty registers array for type:" << typeKey;
+
+                // Для типа Common используем стандартные регистры, если их нет в файле
+                if (type == Registers::Common) {
+                    it.value() = Registers::Register::createCommonRegisters();
+                    qInfo() << "Using default common registers instead";
+                }
             }
         } else {
             qWarning() << "No registers found or invalid format for type:" << typeKey;
+
+            // Для типа Common используем стандартные регистры, если их нет в файле
+            if (type == Registers::Common) {
+                it.value() = Registers::Register::createCommonRegisters();
+                qInfo() << "Using default common registers for missing type:" << typeKey;
+            }
         }
     }
 
