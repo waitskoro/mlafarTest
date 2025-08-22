@@ -35,6 +35,10 @@ MainWindow::MainWindow(QWidget *parent)
     m_ui->tableViewPco->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
     connect(m_ui->actionExit, &QAction::triggered, [this]() { close(); });
+
+    connect(m_ui->comboBox, &QComboBox::currentIndexChanged, [this] (int index) {
+       m_connectionManager->setPcoUnitId(index);
+    });
 }
 
 MainWindow::~MainWindow()
@@ -105,8 +109,8 @@ void MainWindow::initConnection()
 
     connect(m_connectionManager,
             &ConnectionManager::registersRead,
-            [this](Registers::RegisterType type, QVector<Registers::Register> *registers){
-                m_registersManager->updateRegistersValues(type, registers);
+            [this](Registers::RegisterType type, QVector<Registers::Register> registers){
+                m_registersManager->updateRegistersValues(type, &registers);
             });
 }
 

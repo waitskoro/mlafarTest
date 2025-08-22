@@ -32,6 +32,11 @@ void ConnectionManager::disconnectFromDevice()
     m_client->disconnectFromDevice();
 }
 
+void ConnectionManager::setPcoUnitId(int index)
+{
+    m_client->setPcoUnitId(index);
+}
+
 void ConnectionManager::readRegisters(Registers::RegisterType type, QVector<Registers::Register> *registers)
 {
     m_client->readRegisters(type, registers);
